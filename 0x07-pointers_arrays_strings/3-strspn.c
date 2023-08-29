@@ -9,10 +9,11 @@
 unsigned int _strspn(char *s, char *accept)
 {
 	unsigned int n = 0;
-	int r = 0;
 
 	while (*s)
 	{
+		int r = 0;
+
 		while (accept[r];)
 		{
 			if (*s == accept[r])
