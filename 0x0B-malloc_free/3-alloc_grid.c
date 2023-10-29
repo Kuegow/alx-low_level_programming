@@ -6,8 +6,8 @@
 /**
  * alloc_grid - returns a pointer to a 2 dimensional array of integers,
  * with each element initialized to zero
- * @width: array row
- * @height: array column
+ * @width: array column
+ * @height: array row
  *
  * Return: pointer to the array
  */
