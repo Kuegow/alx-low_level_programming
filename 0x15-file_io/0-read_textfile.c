@@ -25,17 +25,17 @@ ssize_t read_textfile(const char *filename, size_t letters)
 	fd = open(filename, O_RDONLY);
 
 	if (fd == -1)
-		exit(0);
+		return (0);
 
 	bytes_read = read(fd, buffer, letters);
 
 	if (bytes_read == -1)
-		exit(0);
+		return (0);
 
 	bytes_read_1 = write(STDIN_FILENO, buffer, bytes_read);
 
 	if (bytes_read_1 == -1)
-		exit(0);
+		return (0);
 
 	free(buffer);
 	close(fd);
