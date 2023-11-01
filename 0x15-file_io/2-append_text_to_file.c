@@ -1,9 +1,7 @@
-#include <stdlib.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include <string.h>
 
 #include "main.h"
 
@@ -17,10 +15,9 @@
  */
 int append_text_to_file(const char *filename, char *text_content)
 {
-	int file_des;
+	int file_des, length;
 	ssize_t w;
-	char *buffer;
-	
+
 	if (filename == NULL)
 		return (-1);
 
@@ -29,25 +26,16 @@ int append_text_to_file(const char *filename, char *text_content)
 	if (file_des == -1)
 		return (-1);
 
-	if (text_content == NULL)
-		text_content = '\0';
-
-	buffer = malloc(strlen(text_content) + 1);
-
-	if (buffer == NULL)
+	if (text_content)
 	{
-		close(file_des);
-		return (-1);
+		for (length = 0; text_content[length] != '\0'; length++)
+			;
+
+		w = write(file_des, text_content, length);
+
+		if (w == -1)
+			return (-1);
 	}
-
-	strncpy(buffer, text_content, strlen(text_content));
-
-	w = write(file_des, buffer, strlen(buffer));
-
-	if (w == -1)
-		return (-1);
-
-	free(buffer);
 	close(file_des);
 
 	return (1);
