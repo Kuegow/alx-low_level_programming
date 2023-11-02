@@ -8,6 +8,7 @@
 
 
 int file_to_file(char *, char *);
+void close_filedes(int);
 
 /**
  * main - check the code
@@ -47,7 +48,7 @@ int main(int argc,  char **argv)
  */
 int file_to_file(char *file_from, char *file_to)
 {
-	int fd1, fd2, end1, end2;
+	int fd1, fd2;
 	ssize_t w, bytes_read;
 	char *buffer;
 	mode_t original_umask;
@@ -70,51 +71,59 @@ int file_to_file(char *file_from, char *file_to)
 	{
 		free(buffer);
 		umask(original_umask);
+		close_filedes(fd1);
 		return (-1);
 	}
 
-	do {
-		bytes_read = read(fd1, buffer, 1024);
-		if (bytes_read == -1)
-		{
-			dprintf(STDERR_FILENO, "Error: Can't read from file %s\n", file_from);
-			free(buffer);
-			umask(original_umask);
-			exit(98);
-		}
-		lseek(fd1, 1024, SEEK_CUR);
-
-		lseek(fd2, 0, SEEK_END);
+	while ((bytes_read = read(fd1, buffer, 1024)) > 0)
+	{
 		w = write(fd2, buffer, bytes_read);
 		if (w == -1)
 		{
 			dprintf(STDERR_FILENO, "Error: Can't write to %s\n", file_to);
 			free(buffer);
 			umask(original_umask);
+			close_filedes(fd1);
+			close_filedes(fd2);
+
 			exit(99);
 		}
+	}
+	if (bytes_read == -1)
+	{
+		dprintf(STDERR_FILENO, "Error: Can't read from file %s\n", file_from);
+		free(buffer);
+		umask(original_umask);
+		close_filedes(fd1);
+		close_filedes(fd2);
 
-	} while (bytes_read > 0);
+		exit(98);
+	}
 
 	free(buffer);
 	umask(original_umask);
-	end1 = close(fd1);
-	end2 = close(fd2);
-	if (end1 == -1 && end2 == -1)
-	{
-		dprintf(STDERR_FILENO, "Error: Can't close fd %d\n"
-				"Error: Can't close fd %d\n", fd1, fd2);
-		exit(100);
-	}
-	else if (end1 == -1)
-	{
-		dprintf(STDERR_FILENO, "Error: Can't close fd %d\n", fd1);
-		exit(100);
-	}
-	else if (end2 == -1)
-	{
-		dprintf(STDERR_FILENO, "Error: Can't close fd %d\n", fd2);
-		exit(100);
-	}
+	close_filedes(fd1);
+	close_filedes(fd2);
+
 	return (1);
+}
+
+
+
+/**
+ * close_filedes - close file descriptor
+ * @filedes: file descriptor to close
+ *
+ */
+void close_filedes(int filedes)
+{
+	int end;
+
+	end = close(filedes);
+
+	if (end == -1)
+	{
+		dprintf(STDERR_FILENO, "Error: Can't close fd %d\n", filedes);
+		exit(100);
+	}
 }
