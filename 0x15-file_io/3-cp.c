@@ -29,10 +29,10 @@ int main(int argc,  char **argv)
 
 	file_to_file(argv[1], argv[2]);
 
-/*
-*	res = file_to_file(argv[1], argv[2]);
-*	printf("bytes read --> %d\n", res);
-*/
+	/*
+	 *	res = file_to_file(argv[1], argv[2]);
+	 *	printf("bytes read --> %d\n", res);
+	 */
 
 	return (0);
 }
@@ -73,23 +73,28 @@ int file_to_file(char *file_from, char *file_to)
 		return (-1);
 	}
 
-	bytes_read = read(fd1, buffer, 1024);
-	if (bytes_read == -1)
-	{
-		dprintf(STDERR_FILENO, "Error: Can't read from file %s\n", file_from);
-		free(buffer);
-		umask(original_umask);
-		exit(98);
-	}
+	do {
+		bytes_read = read(fd1, buffer, 1024);
+		if (bytes_read == -1)
+		{
+			dprintf(STDERR_FILENO, "Error: Can't read from file %s\n", file_from);
+			free(buffer);
+			umask(original_umask);
+			exit(98);
+		}
+		lseek(fd1, 1024, SEEK_CUR);
 
-	w = write(fd2, buffer, bytes_read);
-	if (w == -1)
-	{
-		dprintf(STDERR_FILENO, "Error: Can't write to %s\n", file_to);
-		free(buffer);
-		umask(original_umask);
-		exit(99);
-	}
+		lseek(fd2, 0, SEEK_END);
+		w = write(fd2, buffer, bytes_read);
+		if (w == -1)
+		{
+			dprintf(STDERR_FILENO, "Error: Can't write to %s\n", file_to);
+			free(buffer);
+			umask(original_umask);
+			exit(99);
+		}
+
+	} while (bytes_read > 0);
 
 	free(buffer);
 	umask(original_umask);
