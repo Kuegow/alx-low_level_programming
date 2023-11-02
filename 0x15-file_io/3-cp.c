@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <errno.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <fcntl.h>
@@ -18,13 +19,21 @@ int file_to_file(char *, char *);
  */
 int main(int argc,  char **argv)
 {
+	int res;
+	(void)res;
+
 	if (argc != 3)
 	{
 		dprintf(2, "Usage: %s file_from file_to\n", argv[0]);
-			exit(97);
+		exit(97);
 	}
 
 	file_to_file(argv[1], argv[2]);
+
+/*
+*	res = file_to_file(argv[1], argv[2]);
+*	printf("bytes read --> %d\n", res);
+*/
 
 	return (0);
 }
@@ -52,7 +61,14 @@ int file_to_file(char *file_from, char *file_to)
 	original_umask = umask(0);
 	fd1 = open(file_from, O_RDONLY);
 	fd2 = open(file_to, O_CREAT | O_TRUNC | O_WRONLY, 0664);
-	if (fd1 == -1 || fd2 == -1)
+	if (fd1 == -1)
+	{
+		free(buffer);
+		umask(original_umask);
+		dprintf(2, "Error: Can't read from file %s\n", file_from);
+		exit(98);
+	}
+	if (fd2 == -1)
 	{
 		free(buffer);
 		umask(original_umask);
@@ -81,15 +97,20 @@ int file_to_file(char *file_from, char *file_to)
 	umask(original_umask);
 	end1 = close(fd1);
 	end2 = close(fd2);
-	if (end1 == -1)
+	if (end1 == -1 && end2 == -1)
+	{
+		dprintf(2, "Error: Can't close fd %d\nError: Can't close fd %d\n", fd1, fd2);
+		exit(100);
+	}
+	else if (end1 == -1)
 	{
 		dprintf(2, "Error: Can't close fd %d\n", fd1);
-			exit(100);
+		exit(100);
 	}
-	if (end2 == -1)
+	else if (end2 == -1)
 	{
 		dprintf(2, "Error: Can't close fd %d\n", fd2);
-			exit(100);
+		exit(100);
 	}
 	return (1);
 }
