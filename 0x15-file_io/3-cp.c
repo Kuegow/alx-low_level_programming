@@ -3,7 +3,6 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include <string.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 
@@ -24,7 +23,7 @@ int main(int argc,  char **argv)
 
 	if (argc != 3)
 	{
-		dprintf(2, "Usage: %s file_from file_to\n", argv[0]);
+		dprintf(STDERR_FILENO, "Usage: %s file_from file_to\n", argv[0]);
 		exit(97);
 	}
 
@@ -53,10 +52,9 @@ int file_to_file(char *file_from, char *file_to)
 	char *buffer;
 	mode_t original_umask;
 
-	buffer = malloc(strlen(file_from) * 1024);
+	buffer = malloc(sizeof(char) * 1024);
 	if (buffer == NULL)
 		return (-1);
-	strcpy(buffer, file_from);
 
 	original_umask = umask(0);
 	fd1 = open(file_from, O_RDONLY);
@@ -65,7 +63,7 @@ int file_to_file(char *file_from, char *file_to)
 	{
 		free(buffer);
 		umask(original_umask);
-		dprintf(2, "Error: Can't read from file %s\n", file_from);
+		dprintf(STDERR_FILENO, "Error: Can't read from file %s\n", file_from);
 		exit(98);
 	}
 	if (fd2 == -1)
@@ -78,7 +76,7 @@ int file_to_file(char *file_from, char *file_to)
 	bytes_read = read(fd1, buffer, 1024);
 	if (bytes_read == -1)
 	{
-		dprintf(2, "Error: Can't read from file %s\n", file_from);
+		dprintf(STDERR_FILENO, "Error: Can't read from file %s\n", file_from);
 		free(buffer);
 		umask(original_umask);
 		exit(98);
@@ -87,7 +85,7 @@ int file_to_file(char *file_from, char *file_to)
 	w = write(fd2, buffer, bytes_read);
 	if (w == -1)
 	{
-		dprintf(2, "Error: Can't write to %s\n", file_to);
+		dprintf(STDERR_FILENO, "Error: Can't write to %s\n", file_to);
 		free(buffer);
 		umask(original_umask);
 		exit(99);
@@ -99,17 +97,18 @@ int file_to_file(char *file_from, char *file_to)
 	end2 = close(fd2);
 	if (end1 == -1 && end2 == -1)
 	{
-		dprintf(2, "Error: Can't close fd %d\nError: Can't close fd %d\n", fd1, fd2);
+		dprintf(STDERR_FILENO, "Error: Can't close fd %d\n"
+				"Error: Can't close fd %d\n", fd1, fd2);
 		exit(100);
 	}
 	else if (end1 == -1)
 	{
-		dprintf(2, "Error: Can't close fd %d\n", fd1);
+		dprintf(STDERR_FILENO, "Error: Can't close fd %d\n", fd1);
 		exit(100);
 	}
 	else if (end2 == -1)
 	{
-		dprintf(2, "Error: Can't close fd %d\n", fd2);
+		dprintf(STDERR_FILENO, "Error: Can't close fd %d\n", fd2);
 		exit(100);
 	}
 	return (1);
