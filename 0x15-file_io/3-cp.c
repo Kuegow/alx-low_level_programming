@@ -55,7 +55,10 @@ int file_to_file(char *file_from, char *file_to)
 
 	buffer = malloc(sizeof(char) * 1024);
 	if (buffer == NULL)
-		return (-1);
+	{
+		dprintf(STDERR_FILENO, "Error: Can't write to %s\n", file_to);
+		exit(99);
+	}
 
 	original_umask = umask(0);
 	fd1 = open(file_from, O_RDONLY);
@@ -72,7 +75,8 @@ int file_to_file(char *file_from, char *file_to)
 		free(buffer);
 		umask(original_umask);
 		close_filedes(fd1);
-		return (-1);
+		dprintf(STDERR_FILENO, "Error: Can't read from file %s\n", file_to);
+		exit(98);
 	}
 
 	while ((bytes_read = read(fd1, buffer, 1024)) > 0)
@@ -105,7 +109,7 @@ int file_to_file(char *file_from, char *file_to)
 	close_filedes(fd1);
 	close_filedes(fd2);
 
-	return (1);
+	return (0);
 }
 
 
