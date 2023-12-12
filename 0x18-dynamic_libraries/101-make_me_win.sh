@@ -1,3 +1,3 @@
 #!/bin/bash
-export LD_PRELOAD=data/preload/gm.so.16.04 gm
+export LD_PRELOAD=data/preload/gm
 unset LD_PRELOAD
